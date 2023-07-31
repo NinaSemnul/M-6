@@ -5,6 +5,10 @@ public class Client {
     private String ID;
     private String name;
 
+    public Client(String name ){
+
+        this.name = name;
+    }
 
     public Client(String ID, String name ){
 

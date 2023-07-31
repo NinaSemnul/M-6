@@ -3,6 +3,7 @@ import DTO.Client;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,7 +22,7 @@ public class ClientService {
 
         try {
         createSt =  (java.sql.PreparedStatement)  connection
-                .prepareStatement("INSERT INTO client(name) VALUES (?)");
+                .prepareStatement("INSERT INTO client(name) VALUES (?)", Statement.RETURN_GENERATED_KEYS);
         getByIdSt = (java.sql.PreparedStatement)  connection
                 .prepareStatement("SELECT * FROM client WHERE ID = ?");
         setNameSt = (java.sql.PreparedStatement)  connection
@@ -35,21 +36,21 @@ public class ClientService {
     }
     }
 
-    public long create(Client client) throws SQLException {
+    public long create(String name) throws SQLException {
 
         try {
             long Id = 0;
-            createSt.setString(1, client.getName());
+            createSt.setString(1, name);
             createSt.executeUpdate();
+
             ResultSet generatedKeys = createSt.getGeneratedKeys();
             if (generatedKeys.next()) {
                 Id = generatedKeys.getLong(1);
             }
             generatedKeys.close();
-            System.out.println("Successfully added to the client table with id: " + Id );
             return Id;
+
         } catch (SQLException e) {
-            System.out.println("Not added to the client table");
             throw new RuntimeException(e);
         }
 
@@ -60,17 +61,14 @@ public class ClientService {
 
         try {
             getByIdSt.setLong(1, id);
-            getByIdSt.executeUpdate();
             ResultSet rs = getByIdSt.executeQuery();
 
             if (rs.next()) {
                 name = rs.getString("name");
             }
 
-            System.out.println("Client with ID: " + id +  ": " + name);
         } catch (SQLException e) {
             e.printStackTrace();
-            System.out.println("Client with ID: " + id +  " not found");
         }
         return name;
     }
@@ -79,37 +77,28 @@ public class ClientService {
         try {
             deleteByIdSt.setLong(1, id);
             int rowsAffected = deleteByIdSt.executeUpdate();
-
-            if (rowsAffected > 0) {
-                System.out.println("Successfully deleted client with ID: " + id);
-            } else {
-                System.out.println("Client with ID: " + id + " not found, no deleted.");
-            }
         } catch (SQLException e) {
             e.printStackTrace();
-            System.out.println("Not deleted client with ID: " + id);
         }
     }
 
     public List<Client> listAll() {
-
-        List<Client> all_Client = new ArrayList<Client>();
+        List<Client> allClient = new ArrayList<Client>();
 
         try {
-
             ResultSet rs = listAllSt.executeQuery();
 
             while(rs.next()) {
 
                 Client c = new Client(rs.getString("ID"),
                         rs.getString("name"));
-                all_Client.add(c);
+                allClient.add(c);
             }
 
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return all_Client;
+        return allClient;
     }
 
 }
